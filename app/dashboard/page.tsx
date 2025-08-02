@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Navbar from '../components/layout/navbar';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -35,19 +36,22 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="hero-bg min-h-screen flex items-center justify-center">
-      <div className="container mx-auto px-6">
-        <div className="text-center">
-          <p className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-8">
-            Dashboard
-          </p>
-          <div className="mt-6 text-center">
-            <Link href="/" className="text-sm text-indigo-600 hover:text-indigo-500">
-              ← Back to Home
-            </Link>
+    <>
+      <Navbar />
+      <main className="hero-bg min-h-screen flex items-center justify-center" style={{marginLeft: '280px', paddingTop: '120px'}}>
+        <div className="container mx-auto px-6">
+          <div className="text-center">
+            <p className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-8">
+              Dashboard
+            </p>
+            <div className="mt-6 text-center">
+              <Link href="/" className="text-sm text-indigo-600 hover:text-indigo-500">
+                ← Back to Home
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }
