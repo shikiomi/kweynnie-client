@@ -367,7 +367,7 @@ export default function AdminSettingsPage() {
                       <button
                         type="button"
                         onClick={handleCreateUser}
-                        className="bg-indigo-600 text-white px-8 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-200 font-medium w-full"
+                        className="bg-indigo-600 text-white px-8 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-200 font-medium"
                         disabled={
                           !newUser.firstName ||
                           !newUser.lastName ||
