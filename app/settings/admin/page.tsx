@@ -122,12 +122,11 @@ export default function AdminSettingsPage() {
 
   return (
     <>
-      <div className="flex min-h-screen hero-bg">
-        <Navbar />
-        <main className="flex-1" style={{ padding: '2rem', paddingTop: '120px' }}>
+      <Navbar />
+      <main className="hero-bg min-h-screen" style={{marginLeft: '280px', padding: '2rem', paddingTop: '120px'}}>
           <div className="max-w-4xl mx-auto">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Admin Settings</h1>
             </div>
             <div className="bg-white rounded-lg shadow">
               <div className="border-b border-gray-200">
@@ -399,9 +398,8 @@ export default function AdminSettingsPage() {
                 ← Back to Dashboard
               </Link>
             </div>
-          </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </>
   );
 }
