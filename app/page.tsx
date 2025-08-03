@@ -7,8 +7,7 @@ export default function Home() {
   return (
     <>
       <ScrollAnimations />
-      <main>
-      <section className="hero-bg pt-24 pb-16 lg:pt-28 lg:pb-20">
+      <section className="pt-24 pb-16 lg:pt-28 lg:pb-20">
         <div className="container mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="text-center lg:text-left">
@@ -79,7 +78,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </main>
     </>
   );
 }
