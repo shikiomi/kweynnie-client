@@ -23,8 +23,9 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth">
       <body className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen`}>
         <Header />
+        <main className="flex-grow hero-bg">
           {children}
-       
+        </main>
         <Footer />
       </body>
     </html>
