@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '../../components/layout/navbar';
+import ConfirmationModal from '../../components/ui/confirmation-modal';
 
 export default function AdminSettingsPage() {
   const router = useRouter();
@@ -35,6 +36,23 @@ export default function AdminSettingsPage() {
   const [createUserMsg, setCreateUserMsg] = useState('');
   const [createUserError, setCreateUserError] = useState('');
 
+  // Password change state
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+
+  // Save details state
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [isSavingDetails, setIsSavingDetails] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState('');
+
   useEffect(() => {
     const authStatus = localStorage.getItem('isAuthenticated');
     const storedUserType = localStorage.getItem('userType');
@@ -57,9 +75,62 @@ export default function AdminSettingsPage() {
   };
 
   const handleSaveClick = () => {
-    console.log('Saving admin data:', formData);
-    setIsEditing(false);
-    // Add API call to save admin data
+    setSaveError('');
+    setSaveSuccess('');
+    
+    // Validate required fields
+    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim()) {
+      setSaveError('Please fill in all required fields.');
+      return;
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setSaveError('Please enter a valid email address.');
+      return;
+    }
+    
+    setShowSaveModal(true);
+  };
+
+  const handleConfirmSave = async () => {
+    setIsSavingDetails(true);
+    
+    try {
+      //Replace with actual API call when backend is ready
+      const response = await fetch('/api/admin/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'placeholder-token'}`
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          email: formData.email.trim(),
+          role: formData.role.trim()
+        })
+      });
+
+      if (response.ok) {
+        setSaveSuccess('Profile updated successfully!');
+        setOriginalData({ ...formData });
+        setIsEditing(false);
+      } else {
+        const errorData = await response.json();
+        setSaveError(errorData.message || 'Failed to update profile. Please try again.');
+      }
+    } catch (error) {
+      //Placed success bc no backend yet
+      console.log('Admin profile update attempt:', formData);
+      setSaveSuccess('Profile updated successfully! (Demo only)');
+      setOriginalData({ ...formData });
+      setIsEditing(false);
+    } finally {
+      setIsSavingDetails(false);
+      setShowSaveModal(false);
+    }
   };
 
   const handleCancelClick = () => {
@@ -74,7 +145,7 @@ export default function AdminSettingsPage() {
     }));
   };
 
-  // Create User handlers
+  // Create User event handlers
   const handleNewUserChange = (field: string, value: string) => {
     setNewUser(prev => ({ ...prev, [field]: value }));
     setCreateUserMsg('');
@@ -94,7 +165,7 @@ export default function AdminSettingsPage() {
       setCreateUserError('Please fill in all fields.');
       return;
     }
-    setCreateUserMsg('User created successfully! (Local only)');
+    setCreateUserMsg('User created successfully! (Demo only)');
     setNewUser({
       firstName: '',
       lastName: '',
@@ -102,6 +173,82 @@ export default function AdminSettingsPage() {
       password: '',
       role: ''
     });
+  };
+
+  // Password change event handlers
+  const handlePasswordChange = (field: string, value: string) => {
+    setPasswordData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    setPasswordError('');
+    setPasswordSuccess('');
+  };
+
+  const handlePasswordUpdateClick = () => {
+    setPasswordError('');
+    setPasswordSuccess('');
+    
+    // Pass validation
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      setPasswordError('Please fill in all password fields.');
+      return;
+    }
+    
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('New passwords do not match.');
+      return;
+    }
+    
+    if (passwordData.newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters long.');
+      return;
+    }
+    
+    setShowPasswordModal(true);
+  };
+
+  const handleConfirmPasswordUpdate = async () => {
+    setIsUpdatingPassword(true);
+    
+    try {
+      // TODO: Replace with actual API call when backend is ready
+      const response = await fetch('/api/admin/password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'placeholder-token'}`
+        },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword
+        })
+      });
+
+      if (response.ok) {
+        setPasswordSuccess('Password updated successfully!');
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+      } else {
+        const errorData = await response.json();
+        setPasswordError(errorData.message || 'Failed to update password. Please try again.');
+      }
+    } catch (error) {
+      //Placed success bc no backend yet
+      console.log('Admin password update attempt:', passwordData);
+      setPasswordSuccess('Password updated successfully! (Demo only)');
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } finally {
+      setIsUpdatingPassword(false);
+      setShowPasswordModal(false);
+    }
   };
 
   if (!isAuthenticated || userType !== 'admin') {
@@ -231,6 +378,19 @@ export default function AdminSettingsPage() {
                         readOnly={!isEditing}
                       />
                     </div>
+
+                    {saveError && (
+                      <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                        <p className="text-sm text-red-600">{saveError}</p>
+                      </div>
+                    )}
+
+                    {saveSuccess && (
+                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                        <p className="text-sm text-green-600">{saveSuccess}</p>
+                      </div>
+                    )}
+
                     <div className="mt-8">
                       {!isEditing ? (
                         <button
@@ -268,6 +428,8 @@ export default function AdminSettingsPage() {
                       <input
                         type="password"
                         placeholder="Enter current password"
+                        value={passwordData.currentPassword}
+                        onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                       />
                     </div>
@@ -277,7 +439,9 @@ export default function AdminSettingsPage() {
                       </label>
                       <input
                         type="password"
-                        placeholder="Enter new password"
+                        placeholder="Enter new password (min. 8 characters)"
+                        value={passwordData.newPassword}
+                        onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                       />
                     </div>
@@ -288,11 +452,29 @@ export default function AdminSettingsPage() {
                       <input
                         type="password"
                         placeholder="Confirm new password"
+                        value={passwordData.confirmPassword}
+                        onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                       />
                     </div>
+
+                    {passwordError && (
+                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                        <p className="text-sm text-red-600">{passwordError}</p>
+                      </div>
+                    )}
+
+                    {passwordSuccess && (
+                      <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                        <p className="text-sm text-green-600">{passwordSuccess}</p>
+                      </div>
+                    )}
+
                     <div className="mt-8">
-                      <button className="bg-indigo-600 text-white px-8 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-200 font-medium">
+                      <button 
+                        onClick={handlePasswordUpdateClick}
+                        className="bg-indigo-600 text-white px-8 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-200 font-medium"
+                      >
                         Update Password
                       </button>
                     </div>
@@ -400,6 +582,30 @@ export default function AdminSettingsPage() {
             </div>
         </div>
       </main>
+
+      <ConfirmationModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+        onConfirm={handleConfirmPasswordUpdate}
+        title="Confirm Password Update"
+        message="Are you sure you want to update your password? This action cannot be undone and you may need to sign in again."
+        confirmText="Yes, Update Password"
+        cancelText="Cancel"
+        type="warning"
+        isLoading={isUpdatingPassword}
+      />
+
+      <ConfirmationModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        onConfirm={handleConfirmSave}
+        title="Save Profile Changes"
+        message="Are you sure you want to save these changes to your profile? Your information will be updated in the system."
+        confirmText="Yes, Save Changes"
+        cancelText="Cancel"
+        type="info"
+        isLoading={isSavingDetails}
+      />
     </>
   );
 }
