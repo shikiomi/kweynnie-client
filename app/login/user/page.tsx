@@ -7,23 +7,43 @@ import { useState } from 'react';
 export default function UserLoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Placeholder 
-    const user = true; 
-    
-    if (user) {
+    setErrorMsg('');
+
+    try {
+      const response = await fetch('http://localhost:8000/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        setErrorMsg('Invalid credentials.');
+        setIsLoading(false);
+        return;
+      }
+
+      const data = await response.json();
       localStorage.setItem('isAuthenticated', 'true');
       localStorage.setItem('userType', 'user');
-      
+      // If you want, add: localStorage.setItem('userEmail', email);
+
       setTimeout(() => {
         router.push('/dashboard');
       }, 500);
+    } catch (err) {
+      setErrorMsg('Server error or cannot connect.');
+    } finally {
+      setIsLoading(false);
     }
   };
+
   return (
     <div className="min-h-screen hero-bg flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -49,11 +69,12 @@ export default function UserLoginPage() {
                   type="email"
                   autoComplete="email"
                   required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
             </div>
-
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
@@ -65,11 +86,15 @@ export default function UserLoginPage() {
                   type="password"
                   autoComplete="current-password"
                   required
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
             </div>
-
+            {errorMsg && (
+              <div className="mb-4 text-center text-sm text-red-600">{errorMsg}</div>
+            )}
             <div>
               <button
                 type="submit"
@@ -80,7 +105,6 @@ export default function UserLoginPage() {
               </button>
             </div>
           </form>
-
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -90,7 +114,6 @@ export default function UserLoginPage() {
                 <span className="px-2 bg-white text-gray-500">Or</span>
               </div>
             </div>
-
             <div className="mt-6">
               <Link
                 href="/login/admin"
@@ -100,7 +123,6 @@ export default function UserLoginPage() {
               </Link>
             </div>
           </div>
-
           <div className="mt-6 text-center">
             <Link href="/" className="text-sm text-indigo-600 hover:text-indigo-500">
               ← Back to Home

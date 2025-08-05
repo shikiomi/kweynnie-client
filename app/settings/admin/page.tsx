@@ -7,6 +7,12 @@ import Navbar from '../../components/layout/navbar';
 import ConfirmationModal from '../../components/ui/confirmation-modal';
 
 export default function AdminSettingsPage() {
+
+
+
+
+
+  
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userType, setUserType] = useState('');
@@ -24,6 +30,9 @@ export default function AdminSettingsPage() {
     email: '',
     role: ''
   });
+
+
+
 
   // New User state and handlers
   const [newUser, setNewUser] = useState({
@@ -146,26 +155,39 @@ export default function AdminSettingsPage() {
   };
 
   // Create User event handlers
-  const handleNewUserChange = (field: string, value: string) => {
-    setNewUser(prev => ({ ...prev, [field]: value }));
-    setCreateUserMsg('');
-    setCreateUserError('');
-  };
+  const handleNewUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { name, value } = e.target;
+  setNewUser(prev => ({ ...prev, [name]: value }));
+  setCreateUserMsg('');
+  setCreateUserError('');
+};
 
-  const handleCreateUser = () => {
-    setCreateUserMsg('');
-    setCreateUserError('');
-    if (
-      !newUser.firstName.trim() ||
-      !newUser.lastName.trim() ||
-      !newUser.email.trim() ||
-      !newUser.password.trim() ||
-      !newUser.role.trim()
-    ) {
-      setCreateUserError('Please fill in all fields.');
-      return;
-    }
-    setCreateUserMsg('User created successfully! (Demo only)');
+ const handleCreateUser = async () => {
+  setCreateUserMsg('');
+  setCreateUserError('');
+  if (
+    !newUser.firstName.trim() ||
+    !newUser.lastName.trim() ||
+    !newUser.email.trim() ||
+    !newUser.password.trim() ||    // Still validated, but not sent to backend in sample code
+    !newUser.role.trim()
+  ) {
+    setCreateUserError('Please fill in all fields.');
+    return;
+  }
+  try {
+    const response = await fetch('http://localhost:8000/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        Full_Name: newUser.firstName + ' ' + newUser.lastName,
+        Email: newUser.email,
+        Role: newUser.role,
+        Branch_ID: 1 // Change if you want to select branch!
+      }),
+    });
+    if (!response.ok) throw new Error('Failed to create user');
+    setCreateUserMsg('User created successfully!');
     setNewUser({
       firstName: '',
       lastName: '',
@@ -173,8 +195,11 @@ export default function AdminSettingsPage() {
       password: '',
       role: ''
     });
-  };
-
+    // Optionally: refresh users list here if needed
+  } catch (e) {
+    setCreateUserError('Error creating user');
+  }
+};
   // Password change event handlers
   const handlePasswordChange = (field: string, value: string) => {
     setPasswordData(prev => ({
@@ -481,90 +506,95 @@ export default function AdminSettingsPage() {
                   </div>
                 )}
                 {/* Create New User Tab */}
-                {activeTab === 'createUser' && (
-                  <div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">First name</label>
-                        <input
-                          type="text"
-                          placeholder="First name"
-                          value={newUser.firstName}
-                          onChange={e => handleNewUserChange('firstName', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Last name</label>
-                        <input
-                          type="text"
-                          placeholder="Last name"
-                          value={newUser.lastName}
-                          onChange={e => handleNewUserChange('lastName', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                      <input
-                        type="email"
-                        placeholder="Email address"
-                        value={newUser.email}
-                        onChange={e => handleNewUserChange('email', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
-                        required
-                      />
-                    </div>
-                    <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                      <input
-                        type="password"
-                        placeholder="Password"
-                        value={newUser.password}
-                        onChange={e => handleNewUserChange('password', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
-                        required
-                      />
-                    </div>
-                    <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
-                      <input
-                          type="text"
-                          placeholder="Role"
-                          value={newUser.role}
-                          onChange={e => handleNewUserChange('role', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
-                          required
-                        />
-                    </div>
-                    <div className="mt-8">
-                      <button
-                        type="button"
-                        onClick={handleCreateUser}
-                        className="bg-indigo-600 text-white px-8 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-200 font-medium"
-                        disabled={
-                          !newUser.firstName ||
-                          !newUser.lastName ||
-                          !newUser.email ||
-                          !newUser.password ||
-                          !newUser.role
-                        }
-                      >
-                        Create
-                      </button>
-                    </div>
-                    {createUserError && (
-                      <div className="mt-4 text-center text-sm text-red-600">{createUserError}</div>
-                    )}
-                    {createUserMsg && (
-                      <div className="mt-4 text-center text-sm text-green-600">{createUserMsg}</div>
-                    )}
-                  </div>
-                )}
+              {activeTab === 'createUser' && (
+  <div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">First name</label>
+        <input
+          type="text"
+          name="firstName"
+          placeholder="First name"
+          value={newUser.firstName}
+          onChange={handleNewUserChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Last name</label>
+        <input
+          type="text"
+          name="lastName"   // <-- fixed capitalization!
+          placeholder="Last name"
+          value={newUser.lastName}
+          onChange={handleNewUserChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+          required
+        />
+      </div>
+    </div>
+    <div className="mt-6">
+      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+      <input
+        type="email"
+        name="email"
+        placeholder="Email address"
+        value={newUser.email}
+        onChange={handleNewUserChange}
+        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+        required
+      />
+    </div>
+    <div className="mt-6">
+      <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+      <input
+        type="password"
+        name="password"
+        placeholder="Password"
+        value={newUser.password}
+        onChange={handleNewUserChange}
+        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+        required
+      />
+    </div>
+    <div className="mt-6">
+      <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+      <input
+        type="text"
+        name="role"
+        placeholder="Role"
+        value={newUser.role}
+        onChange={handleNewUserChange}
+        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+        required
+      />
+    </div>
+    <div className="mt-8">
+      <button
+        type="button"
+        onClick={handleCreateUser}
+        className="bg-indigo-600 text-white px-8 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-200 font-medium"
+        disabled={
+          !newUser.firstName ||
+          !newUser.lastName ||
+          !newUser.email ||
+          !newUser.password ||
+          !newUser.role
+        }
+      >
+        Create
+      </button>
+    </div>
+    {createUserError && (
+      <div className="mt-4 text-center text-sm text-red-600">{createUserError}</div>
+    )}
+    {createUserMsg && (
+      <div className="mt-4 text-center text-sm text-green-600">{createUserMsg}</div>
+    )}
+  </div>
+)}
+
                 {activeTab === 'manageUsers' && (
                   <div>
                     <p className="text-gray-500">Manage Users feature coming soon.</p>
