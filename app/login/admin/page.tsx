@@ -7,21 +7,62 @@ import { useState } from 'react';
 export default function AdminLoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Placeholder
-    const user = true;
-    
-    if (user) {
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('userType', 'admin');
+    setErrorMsg('');
+
+    try {
+      const response = await fetch('http://localhost:8000/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        try{
+          const errorData = await response.json();
+          setErrorMsg(errorData.detail || 'Invalid credentials.');
+        }catch(parseError){
+          setErrorMsg('Invalid credentials');
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      const data = await response.json();
       
+      // Check if user is actually an admin
+      if (data.userType !== 'admin') {
+        setErrorMsg('Access denied. Admin credentials required.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Store user information in localStorage
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('userType', data.userType);
+      localStorage.setItem('userId', data.user_id);
+      localStorage.setItem('userRole', data.role);
+      localStorage.setItem('userEmail', email);
+      localStorage.setItem('branchId', data.branch_id);
+      localStorage.setItem('fullName', data.full_name);
+
+      console.log('Admin login successful:', data);
+
       setTimeout(() => {
-        router.push('/dashboard');
+        router.push('/settings/admin');
       }, 500);
+      
+    } catch (err) {
+      console.error('Login error:', err);
+      setErrorMsg('Server error or cannot connect.');
+    } finally {
+      setIsLoading(false);
     }
   };
   return (
@@ -49,6 +90,8 @@ export default function AdminLoginPage() {
                   type="email"
                   autoComplete="email"
                   required
+                  value={email} 
+                   onChange={(e) => setEmail(e.target.value)}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
@@ -63,12 +106,22 @@ export default function AdminLoginPage() {
                   id="password"
                   name="password"
                   type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)} 
                   autoComplete="current-password"
                   required
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
             </div>
+            {/* ✅ ADDED: Error message display */}
+            {errorMsg && (
+              <div className="rounded-md bg-red-50 p-4">
+                <div className="text-sm text-red-700">
+                  {errorMsg}
+                </div>
+              </div>
+            )}
 
             <div>
               <button

@@ -30,9 +30,23 @@ export default function UserLoginPage() {
       }
 
       const data = await response.json();
+
+       if (data.userType === 'admin') {
+        setErrorMsg('Please use the Administrator login for admin accounts.');
+        setIsLoading(false);
+        return;
+      }
+      
       localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('userType', 'user');
       // If you want, add: localStorage.setItem('userEmail', email);
+      localStorage.setItem('userType', data.userType);
+      localStorage.setItem('userId', data.user_id);
+      localStorage.setItem('userRole', data.role);
+      localStorage.setItem('userEmail', email);
+      localStorage.setItem('branchId', data.branch_id);
+      localStorage.setItem('fullName', data.full_name);
+
+      console.log('Login successful:', data);
 
       setTimeout(() => {
         router.push('/dashboard');

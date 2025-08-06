@@ -7,12 +7,6 @@ import Navbar from '../../components/layout/navbar';
 import ConfirmationModal from '../../components/ui/confirmation-modal';
 
 export default function AdminSettingsPage() {
-
-
-
-
-
-  
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userType, setUserType] = useState('');
@@ -183,7 +177,8 @@ export default function AdminSettingsPage() {
         Full_Name: newUser.firstName + ' ' + newUser.lastName,
         Email: newUser.email,
         Role: newUser.role,
-        Branch_ID: 1 // Change if you want to select branch!
+        Branch_ID: 1, // Change if you want to select branch!
+        password: newUser.password
       }),
     });
     if (!response.ok) throw new Error('Failed to create user');
